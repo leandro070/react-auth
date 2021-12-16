@@ -2,38 +2,48 @@ import React, { useRef, useState } from "react";
 import { useAuth } from "../hooks/useAuth";
 import "react-toastify/dist/ReactToastify.css";
 import { Link, useNavigate } from "react-router-dom";
+import * as Yup from "yup";
+import { useFormik } from "formik";
 
+const LoginSchema = Yup.object().shape({
+  username: Yup.string().required("Username Required"),
+  password: Yup.string().required("Password required"),
+});
+
+const initialFormState = {
+  username: "",
+  password: "",
+};
 const Login = () => {
-  const [formState, setFormState] = useState({
-    username: "",
-    password: "",
+  const { values, errors, touched, ...formik } = useFormik({
+    initialValues: initialFormState,
+    validationSchema: LoginSchema,
+    onSubmit: handleSubmit,
   });
-  const formRef = useRef();
+
   const [formSubmitting, setFormSubmitting] = useState(false);
   const { login } = useAuth();
   let navigate = useNavigate();
 
-  function handleChange(event) {
-    const { name, value } = event?.target;
-    event.preventDefault();
-
-    setFormState({ ...formState, [name]: value });
-  }
-
-  async function handleSubmit(event) {
-    event.preventDefault();
+  async function handleSubmit(values) {
     setFormSubmitting(true);
     try {
       await login({
-        ...formState,
+        username: values.username.trim(),
+        password: values.password.trim(),
       });
       navigate("/profile");
     } catch (error) {
-      setFormState({});
-      formRef.current.reset();
+      formik.resetForm(initialFormState);
       setFormSubmitting(false);
     }
   }
+
+  const usernameError =
+    errors?.username && touched?.username ? errors?.username : null;
+
+  const passwordError =
+    errors?.password && touched?.password ? errors?.password : null;
 
   return (
     <section className="h-100">
@@ -44,7 +54,7 @@ const Login = () => {
             className="col-auto justify-content-center"
             style={{ margin: "auto" }}
           >
-            <form onSubmit={handleSubmit} ref={(el) => (formRef.current = el)}>
+            <form onSubmit={formik.handleSubmit}>
               <div className="card text-center">
                 <div className="card-header">Log in</div>
                 <div className="card-body">
@@ -54,12 +64,19 @@ const Login = () => {
                     </label>
                     <input
                       type="text"
-                      className="form-control"
+                      className={`form-control ${
+                        usernameError ? "is-invalid" : ""
+                      }`}
                       name="username"
-                      value={formState.username}
-                      onChange={handleChange}
-                      required
+                      value={values.username}
+                      onChange={formik.handleChange}
+                      onBlur={formik.handleBlur}
                     />
+                    {usernameError ? (
+                      <div className="invalid-feedback d-block">
+                        {usernameError}
+                      </div>
+                    ) : null}
                   </div>
                   <div className="mb-3">
                     <label htmlFor="password" className="form-label">
@@ -67,12 +84,19 @@ const Login = () => {
                     </label>
                     <input
                       type="password"
-                      className="form-control"
+                      className={`form-control ${
+                        passwordError ? "is-invalid" : ""
+                      }`}
                       name="password"
-                      value={formState.password}
-                      onChange={handleChange}
-                      required
+                      value={values.password}
+                      onChange={formik.handleChange}
+                      onBlur={formik.handleBlur}
                     />
+                    {passwordError ? (
+                      <div className="invalid-feedback d-block">
+                        {passwordError}
+                      </div>
+                    ) : null}
                   </div>
                   <button
                     type="submit"

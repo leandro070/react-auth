@@ -4,6 +4,11 @@ import { toast } from "react-toastify";
 
 const AuthContext = createContext(null);
 
+/*
+ ** In this context, a method must be implemented to validate the token every time
+ ** the page is reloaded. Due to the scope presented in the challenge, this was not
+ ** done, so when the page is reloaded, the user will return to its "unauthenticated" state.
+ */
 export const AuthProvider = ({ children }) => {
   const [authenticated, setAuthenticated] = useState(false);
 
@@ -23,27 +28,25 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const register = async () => {
-    const result = await asyncRegister();
+  const register = async (body) => {
+    try {
+      const result = await asyncRegister(body);
 
-    if (result) {
-      console.log("The User has logged out");
-      setAuthenticated(false);
+      if (result) {
+        toast.success(result.message);
+      }
+    } catch (error) {
+      toast.error(error.response.data.message);
+      throw error;
     }
   };
 
   const asyncLogin = async (body) => {
-    return await axios
-      .post("http://localhost:3000/api/v1/auth/login", body)
-      .then((d) => d.data);
+    return await axios.post("/auth/login", body).then((d) => d.data);
   };
 
-  const asyncRegister = async () => {
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        resolve("The user has successfully register on the server");
-      }, 300);
-    });
+  const asyncRegister = async (body) => {
+    return await axios.post("/auth/register", body).then((d) => d.data);
   };
 
   return (

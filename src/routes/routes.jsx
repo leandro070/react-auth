@@ -1,5 +1,6 @@
 import React, { lazy } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
+import { GeneralProvider } from "../hooks/useGeneral";
 import PrivateRoute from "./PrivateRoute";
 
 const Login = lazy(() => import("../components/Login"));
