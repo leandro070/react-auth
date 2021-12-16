@@ -1,7 +1,114 @@
-import React from "react";
+import React, { useRef, useState } from "react";
+import { useAuth } from "../hooks/useAuth";
+import "react-toastify/dist/ReactToastify.css";
+import { Link, useNavigate } from "react-router-dom";
 
 const Login = () => {
-  return <div>Login</div>;
+  const [formState, setFormState] = useState({
+    username: "",
+    password: "",
+  });
+  const formRef = useRef();
+  const [formSubmitting, setFormSubmitting] = useState(false);
+  const { login } = useAuth();
+  let navigate = useNavigate();
+
+  function handleChange(event) {
+    const { name, value } = event?.target;
+    event.preventDefault();
+
+    setFormState({ ...formState, [name]: value });
+  }
+
+  async function handleSubmit(event) {
+    event.preventDefault();
+    setFormSubmitting(true);
+    try {
+      await login({
+        ...formState,
+      });
+      navigate("/profile");
+    } catch (error) {
+      setFormState({});
+      formRef.current.reset();
+      setFormSubmitting(false);
+    }
+  }
+
+  return (
+    <section className="h-100">
+      <div className="container h-100 d-flex justify-content-center">
+        <div className="row justify-content-center">
+          <div className="col"></div>
+          <div
+            className="col-auto justify-content-center"
+            style={{ margin: "auto" }}
+          >
+            <form onSubmit={handleSubmit} ref={(el) => (formRef.current = el)}>
+              <div className="card text-center">
+                <div className="card-header">Log in</div>
+                <div className="card-body">
+                  <div className="mb-3">
+                    <label htmlFor="username" className="form-label">
+                      Username
+                    </label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      name="username"
+                      value={formState.username}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <label htmlFor="password" className="form-label">
+                      Password
+                    </label>
+                    <input
+                      type="password"
+                      className="form-control"
+                      name="password"
+                      value={formState.password}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    className="btn btn-primary btn-block"
+                    disabled={formSubmitting}
+                  >
+                    {!formSubmitting ? (
+                      "Submit"
+                    ) : (
+                      <>
+                        <span
+                          className="spinner-border spinner-border-sm"
+                          role="status"
+                          aria-hidden="true"
+                        ></span>
+                        Submitting...
+                      </>
+                    )}
+                  </button>
+                  <p className="text-center">
+                    <Link
+                      to="/register"
+                      className="btn btn-outline-primary btn-block mt-3"
+                    >
+                      Register me
+                    </Link>
+                  </p>
+                </div>
+              </div>
+            </form>
+          </div>
+          <div className="col"></div>
+        </div>
+      </div>
+    </section>
+  );
 };
 
 export default Login;

@@ -1,22 +1,30 @@
+import axios from "axios";
 import { createContext, useContext, useState } from "react";
+import { toast } from "react-toastify";
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [authenticated, setAuthenticated] = useState(false);
 
-  const login = async () => {
-    const result = await fakeAsyncLogin();
+  const login = async (body) => {
+    try {
+      const result = await asyncLogin(body);
 
-    if (result) {
-      console.log("user has logged in");
-
-      setAuthenticated(true);
+      if (result.data) {
+        localStorage.setItem("auth-token", result.data.access_token);
+        setAuthenticated(true);
+        toast.success(result.message);
+      }
+      return result;
+    } catch (error) {
+      toast.error(error.response.data.message);
+      throw error;
     }
   };
 
-  const logout = async () => {
-    const result = await fakeAsyncLogout();
+  const register = async () => {
+    const result = await asyncRegister();
 
     if (result) {
       console.log("The User has logged out");
@@ -24,29 +32,23 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  /// Mock Async Login API call.
-  // TODO: Replace with your actual login API Call code
-  const fakeAsyncLogin = async () => {
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        resolve("Logged In");
-      }, 300);
-    });
+  const asyncLogin = async (body) => {
+    return await axios
+      .post("http://localhost:3000/api/v1/auth/login", body)
+      .then((d) => d.data);
   };
 
-  // Mock Async Logout API call.
-  // TODO: Replace with your actual logout API Call code
-  const fakeAsyncLogout = async () => {
+  const asyncRegister = async () => {
     return new Promise((resolve, reject) => {
       setTimeout(() => {
-        resolve("The user has successfully logged on the server");
+        resolve("The user has successfully register on the server");
       }, 300);
     });
   };
 
   return (
     <AuthContext.Provider
-      value={{ authenticated, setAuthenticated, login, logout }}
+      value={{ authenticated, setAuthenticated, login, register }}
     >
       {children}
     </AuthContext.Provider>

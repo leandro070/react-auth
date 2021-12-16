@@ -11,8 +11,8 @@ const AppRoutes = () => (
     <Route path="/" element={<Navigate replace to="/login" />} />
     <Route path="login" element={<Login />} />
     <Route path="register" element={<Register />} />
-    <Route path="profile" element={<PrivateRoute />}>
-      <Route element={<Profile />} />
+    <Route element={<PrivateRoute />}>
+      <Route path="profile" element={<Profile />} />
     </Route>
     <Route element={() => <p>Page not found</p>} />
   </Routes>
